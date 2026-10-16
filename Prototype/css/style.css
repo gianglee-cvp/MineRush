@@ -1,0 +1,121 @@
+/* The game is laid out on a fixed 1080x1920 stage that is scaled to fit the window. */
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: #1b140f; overflow: hidden; }
+body { font-family: 'Baloo 2', system-ui, sans-serif; user-select: none; -webkit-user-select: none; }
+
+#stage {
+  position: absolute; left: 50%; top: 50%;
+  width: 1080px; height: 1920px;
+  transform-origin: 0 0;
+  overflow: hidden; background: #8fd0ff;
+}
+#scene { position: absolute; inset: 0; width: 1080px; height: 1920px; display: block; }
+
+/* ---------- shared wood look ---------- */
+.wood-panel {
+  position: absolute;
+  background: linear-gradient(#6b3f1f, #4a2a13);
+  border: 6px solid #2e1a0b;
+  border-radius: 26px;
+  box-shadow: inset 0 3px 0 rgba(255, 210, 150, .35), inset 0 -4px 0 rgba(0, 0, 0, .35), 0 8px 0 rgba(0, 0, 0, .35);
+  color: #fff;
+}
+.wood-btn {
+  position: absolute; width: 124px; height: 124px; padding: 0; cursor: pointer;
+  background: linear-gradient(#8a5428, #5a3216);
+  border: 6px solid #2e1a0b; border-radius: 30px;
+  box-shadow: inset 0 4px 0 rgba(255, 210, 150, .4), 0 8px 0 rgba(0, 0, 0, .35);
+}
+.wood-btn svg { width: 64px; height: 64px; fill: #fff6e6; }
+
+/* ---------- top HUD ---------- */
+#hud-top { position: absolute; left: 0; top: 0; width: 1080px; height: 260px; pointer-events: none; }
+#hud-top > * { pointer-events: auto; }
+#btn-pause { left: 26px; top: 34px; }
+#level-badge {
+  left: 160px; top: 48px; height: 96px; padding: 0 30px 0 26px;
+  display: flex; align-items: center; font-size: 52px; font-weight: 800; letter-spacing: 1px;
+  text-shadow: 0 4px 0 #2e1a0b;
+}
+#furnace-panel {
+  left: 344px; top: 24px; width: 470px; height: 196px;
+  display: flex; align-items: stretch; padding: 10px 14px;
+}
+#furnace-active { display: flex; gap: 10px; }
+.f-card {
+  width: 134px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+}
+.f-card svg { width: 96px; height: 92px; }
+.f-card .f-name { font-size: 30px; font-weight: 800; line-height: 1; margin-top: 2px; text-shadow: 0 3px 0 #2e1a0b; }
+.f-card .f-count {
+  margin-top: 4px; min-width: 104px; text-align: center;
+  background: #24140a; border-radius: 16px; font-size: 40px; font-weight: 800; line-height: 48px;
+}
+.divider { width: 4px; margin: 6px 10px; background: #2e1a0b; border-radius: 2px; box-shadow: 2px 0 0 rgba(255, 210, 150, .2); }
+#furnace-next { flex: 1; display: flex; flex-direction: column; align-items: center; }
+.next-title { font-size: 28px; font-weight: 700; line-height: 1.1; }
+#furnace-next-list { display: flex; gap: 10px; margin-top: 6px; }
+.n-card {
+  width: 70px; height: 128px; background: #24140a; border-radius: 16px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.n-card svg { width: 54px; height: 54px; }
+.n-card .n-name { font-size: 22px; font-weight: 700; line-height: 1; }
+.n-card .n-need { font-size: 26px; font-weight: 800; line-height: 1.1; }
+
+#coins {
+  right: 52px; top: 52px; height: 92px; width: 226px;
+  display: flex; align-items: center; justify-content: flex-start; padding: 0 0 0 18px;
+  font-size: 46px; font-weight: 800; text-shadow: 0 3px 0 #2e1a0b;
+}
+#coins .coin { margin-right: 14px; }
+.coin {
+  display: inline-block; width: 60px; height: 60px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff3b0, #f6c22b 45%, #c98a12 75%);
+  border: 4px solid #8a5a12; box-shadow: inset 0 -4px 0 rgba(0, 0, 0, .2);
+}
+.coin.sm { width: 34px; height: 34px; border-width: 3px; margin-right: 6px; }
+.plus-btn {
+  position: absolute; right: -44px; top: 2px; width: 76px; height: 76px; border-radius: 50%;
+  background: radial-gradient(circle at 40% 30%, #8ef07a, #2fa52a 65%);
+  border: 5px solid #1d5c18; color: #fff; font: 800 52px/1 'Baloo 2', sans-serif; cursor: pointer;
+  box-shadow: 0 6px 0 rgba(0, 0, 0, .3); padding: 0 0 6px;
+}
+
+/* ---------- projected 3D labels ---------- */
+#labels { position: absolute; inset: 0; pointer-events: none; }
+.tag {
+  position: absolute; transform: translate(-50%, -50%);
+  background: linear-gradient(#5a3216, #3a200d); border: 4px solid #24140a; border-radius: 18px;
+  color: #fff; font-weight: 800; white-space: nowrap; text-shadow: 0 3px 0 #24140a;
+  box-shadow: inset 0 2px 0 rgba(255, 210, 150, .35), 0 5px 0 rgba(0, 0, 0, .3);
+}
+.tag.siding { font-size: 34px; padding: 0 26px; line-height: 58px; display: flex; align-items: center; gap: 12px; }
+.tag.siding svg { width: 40px; height: 32px; }
+.tag.furnace { font-size: 38px; padding: 0 18px; line-height: 50px; border-color: #ffb020; }
+
+/* ---------- booster bar ---------- */
+#booster-bar {
+  left: 22px; bottom: 22px; width: 1036px; height: 248px;
+  display: flex; justify-content: space-between; align-items: center; padding: 0 22px;
+}
+.booster {
+  position: relative; width: 230px; height: 206px; padding: 8px 0 0; cursor: pointer;
+  border-radius: 28px; border: 6px solid #0d2a5c;
+  background: linear-gradient(#5ab4ff, #1f6fd6 60%, #1857b3);
+  box-shadow: inset 0 4px 0 rgba(255, 255, 255, .45), 0 8px 0 rgba(0, 0, 0, .35);
+  display: flex; flex-direction: column; align-items: center; color: #fff;
+  font-family: 'Baloo 2', sans-serif;
+}
+.booster:active { transform: translateY(4px); box-shadow: inset 0 4px 0 rgba(255, 255, 255, .45), 0 4px 0 rgba(0, 0, 0, .35); }
+.booster .ico { width: 92px; height: 92px; }
+.booster .b-name { font-size: 34px; font-weight: 800; line-height: 1.05; text-shadow: 0 3px 0 #0d2a5c; }
+.booster .b-price {
+  margin-top: 6px; background: #103d80; border-radius: 16px; padding: 0 18px 0 8px;
+  display: flex; align-items: center; font-size: 32px; font-weight: 800; line-height: 46px;
+}
+
+#loading {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  background: #1b140f; color: #f6c22b; font-size: 56px; font-weight: 800; transition: opacity .4s;
+}

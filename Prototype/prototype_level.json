@@ -1,0 +1,42 @@
+{
+  "id": "proto_01",
+  "name": "Lop da chan",
+  "cols": 7,
+  "rows": 6,
+  "sidings": 4,
+  "furnaces": 2,
+  "preview": 2,
+  "legend": {
+    ".": "dat (ngoai nui)",
+    "#": "gieng chinh (ham co ray)",
+    "G": "vang",
+    "C": "dong",
+    "J": "ngoc",
+    "I": "sat",
+    "R": "da (cho ra bai thai, khong chiem san ga)"
+  },
+  "grid": [
+    ".CJ#JC.",
+    ".GJ#JG.",
+    "IRJRJRC",
+    "IJIJJJI",
+    "GGJCJGG",
+    "IGGIGGI"
+  ],
+  "symmetryBreaks": [
+    { "row": 2, "col": 6, "mirrorOf": "I", "actual": "C" },
+    { "row": 3, "col": 4, "mirrorOf": "I", "actual": "J" }
+  ],
+  "queue": [
+    ["G", 3], ["C", 4], ["J", 4], ["G", 3], ["J", 3],
+    ["I", 4], ["G", 4], ["J", 5], ["I", 3]
+  ],
+  "verified": {
+    "colourBalance": "G10 C4 J12 I7 = queue",
+    "minSidings": 2,
+    "taps": 36,
+    "greedyBotWin_4sidings": 0.74,
+    "randomBotWin_4sidings": 0.0,
+    "greedyBotWin_5sidings": 0.88
+  }
+}

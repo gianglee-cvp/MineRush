@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Mine Rush – Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&display=swap&subset=vietnamese" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body>
+<div id="stage">
+  <canvas id="scene"></canvas>
+
+  <!-- Top HUD -->
+  <div id="hud-top">
+    <button class="wood-btn" id="btn-pause" aria-label="Tạm dừng">
+      <svg viewBox="0 0 40 40"><rect x="10" y="8" width="7" height="24" rx="2"/><rect x="23" y="8" width="7" height="24" rx="2"/></svg>
+    </button>
+    <div class="wood-panel" id="level-badge">Lv. <span id="level-num">1</span></div>
+
+    <div class="wood-panel" id="furnace-panel">
+      <div id="furnace-active"></div>
+      <div class="divider"></div>
+      <div id="furnace-next">
+        <div class="next-title">Tiếp theo:</div>
+        <div id="furnace-next-list"></div>
+      </div>
+    </div>
+
+    <div class="wood-panel" id="coins">
+      <span class="coin"></span><span id="coin-num">500</span>
+      <button class="plus-btn" aria-label="Thêm vàng">+</button>
+    </div>
+  </div>
+
+  <!-- Labels projected from 3D positions -->
+  <div id="labels"></div>
+
+  <!-- Booster bar -->
+  <div id="booster-bar" class="wood-panel">
+    <button class="booster" data-id="rail">
+      <svg viewBox="0 0 64 64" class="ico"><g fill="none" stroke-linecap="round"><path d="M14 52 L44 12" stroke="#5b3a1d" stroke-width="7"/><path d="M26 56 L56 16" stroke="#5b3a1d" stroke-width="7"/><path d="M12 40 L34 54 M18 32 L40 46 M24 24 L46 38 M30 16 L52 30" stroke="#c98d4a" stroke-width="6"/><path d="M14 52 L44 12 M26 56 L56 16" stroke="#cfd6dd" stroke-width="3"/></g><circle cx="50" cy="14" r="9" fill="#4fb3ff" stroke="#fff" stroke-width="3"/><path d="M50 9 v10 M45 14 h10" stroke="#fff" stroke-width="3"/></svg>
+      <span class="b-name">+1 Ray</span><span class="b-price"><span class="coin sm"></span>100</span>
+    </button>
+    <button class="booster" data-id="lift">
+      <svg viewBox="0 0 64 64" class="ico"><rect x="16" y="6" width="32" height="8" rx="2" fill="#7a4b24"/><path d="M20 14 V58 M44 14 V58" stroke="#7a4b24" stroke-width="5"/><rect x="21" y="26" width="22" height="22" rx="3" fill="#f2c94c" stroke="#8a5a12" stroke-width="3"/><rect x="26" y="31" width="12" height="10" rx="2" fill="#4a5560"/><path d="M32 14 V26" stroke="#2d2d2d" stroke-width="2"/><path d="M8 40 l6 -6 l6 6 M8 50 l6 6 l6 -6" stroke="#fff" stroke-width="3" fill="none"/></svg>
+      <span class="b-name">Thang máy</span><span class="b-price"><span class="coin sm"></span>150</span>
+    </button>
+    <button class="booster" data-id="tnt">
+      <svg viewBox="0 0 64 64" class="ico"><g transform="rotate(-25 32 36)"><rect x="14" y="22" width="12" height="32" rx="4" fill="#d43c2c"/><rect x="26" y="22" width="12" height="32" rx="4" fill="#e04b37"/><rect x="38" y="22" width="12" height="32" rx="4" fill="#c6352a"/><rect x="12" y="32" width="40" height="5" fill="#5b2a14"/></g><path d="M34 18 Q38 8 46 8" stroke="#6b4a2b" stroke-width="3" fill="none"/><circle cx="48" cy="8" r="6" fill="#ffd34d"/><circle cx="48" cy="8" r="3" fill="#fff"/></svg>
+      <span class="b-name">Thuốc nổ</span><span class="b-price"><span class="coin sm"></span>120</span>
+    </button>
+    <button class="booster" data-id="lamp">
+      <svg viewBox="0 0 64 64" class="ico"><path d="M30 20 L50 8 L58 22 L38 34 Z" fill="#3a4450"/><ellipse cx="54" cy="15" rx="6" ry="9" transform="rotate(-30 54 15)" fill="#ffe680" stroke="#c99a1a" stroke-width="2"/><rect x="10" y="28" width="30" height="12" rx="5" transform="rotate(-30 25 34)" fill="#2b323a"/><path d="M8 52 L22 44" stroke="#2b323a" stroke-width="8" stroke-linecap="round"/></svg>
+      <span class="b-name">Đèn pha</span><span class="b-price"><span class="coin sm"></span>80</span>
+    </button>
+  </div>
+
+  <div id="loading">Đang dựng mỏ…</div>
+</div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
