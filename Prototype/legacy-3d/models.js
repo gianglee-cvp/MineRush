@@ -241,38 +241,87 @@ export function makeHeadFrame() {
   return g;
 }
 
-export function makeFurnace() {
+// Blast furnace: orange tapered stack with a grey panel band, downcomer pipes,
+// a big arcing gas pipe, and a glowing tap hole with flickering flames at the base.
+export function makeFurnace(signColor = 0xffc629) {
   const g = new THREE.Group();
-  const body = shadow(new THREE.Mesh(new RoundedBoxGeometry(1.02, 1.12, .9, 3, .08), MAT.brick));
-  body.position.y = .56; g.add(body);
-  // brick courses
-  for (let i = 0; i < 4; i++) {
-    const c = new THREE.Mesh(new THREE.BoxGeometry(1.04, .035, .92), MAT.brickDark);
-    c.position.y = .16 + i * .27; g.add(c);
+  const orange = std(0xd8622a, { roughness: .55, metalness: .35 });
+  const orangeDark = std(0xa8461d, { roughness: .6, metalness: .3 });
+  const grey = std(0x8f979f, { roughness: .45, metalness: .6 });
+  const greyDark = std(0x5b6168, { roughness: .5, metalness: .6 });
+  const rust = std(0x6e3420, { roughness: .9 });
+  const add = (mesh, x = 0, y = 0, z = 0) => { mesh.position.set(x, y, z); shadow(mesh); g.add(mesh); return mesh; };
+
+  // base platform and hearth
+  add(new THREE.Mesh(new RoundedBoxGeometry(1.34, .16, 1.14, 3, .06), rust), 0, .08, 0);
+  add(new THREE.Mesh(new RoundedBoxGeometry(1.2, .06, 1.0, 2, .03), orangeDark), 0, .19, 0);
+  add(new THREE.Mesh(new THREE.CylinderGeometry(.5, .54, .34, 24), orange), 0, .39, -.05);
+  add(new THREE.Mesh(new THREE.TorusGeometry(.5, .085, 10, 28).rotateX(Math.PI / 2), orangeDark), 0, .57, -.05);
+  // grey panel band with ribs, and a walkway ring
+  add(new THREE.Mesh(new THREE.CylinderGeometry(.42, .48, .36, 24), grey), 0, .8, -.05);
+  for (let i = 0; i < 12; i++) {
+    const ang = i / 12 * Math.PI * 2;
+    const rib = add(new THREE.Mesh(new THREE.BoxGeometry(.03, .34, .03), greyDark), Math.sin(ang) * .455, .8, -.05 + Math.cos(ang) * .455);
+    rib.rotation.y = ang;
   }
-  const roof = shadow(new THREE.Mesh(new RoundedBoxGeometry(1.14, .16, 1, 2, .05), MAT.metalDark));
-  roof.position.y = 1.18; g.add(roof);
-  const chim = shadow(new THREE.Mesh(new THREE.CylinderGeometry(.13, .15, .55, 12), MAT.brickDark));
-  chim.position.set(.26, 1.5, -.15); g.add(chim);
-  const cap = shadow(new THREE.Mesh(new THREE.CylinderGeometry(.18, .18, .07, 12), MAT.metalDark));
-  cap.position.set(.26, 1.79, -.15); g.add(cap);
-  // mouth with fire
-  const frame = shadow(new THREE.Mesh(new RoundedBoxGeometry(.66, .58, .1, 2, .06), MAT.metalDark));
-  frame.position.set(0, .5, .46); g.add(frame);
-  const hole = new THREE.Mesh(new THREE.PlaneGeometry(.5, .44), new THREE.MeshBasicMaterial({ color: 0xc23a08 }));
-  hole.position.set(0, .5, .515); g.add(hole);
+  add(new THREE.Mesh(new THREE.CylinderGeometry(.6, .6, .04, 28), greyDark), 0, .6, -.05);
+  add(new THREE.Mesh(new THREE.TorusGeometry(.6, .012, 6, 40).rotateX(Math.PI / 2), grey), 0, .72, -.05);
+  // tapered upper stack (lathe profile)
+  const prof = [[.42, 0], [.4, .12], [.33, .45], [.24, .78], [.2, .9]].map(([r, y]) => new THREE.Vector2(r, y));
+  add(new THREE.Mesh(new THREE.LatheGeometry(prof, 24), orange), 0, .98, -.05);
+  add(new THREE.Mesh(new THREE.CylinderGeometry(.33, .33, .05, 24), orangeDark), 0, 1.3, -.05);
+  // top deck with railing and four grey downcomers
+  add(new THREE.Mesh(new THREE.CylinderGeometry(.34, .34, .05, 20), greyDark), 0, 1.9, -.05);
+  add(new THREE.Mesh(new THREE.TorusGeometry(.34, .012, 6, 30).rotateX(Math.PI / 2), grey), 0, 2.0, -.05);
+  for (let i = 0; i < 4; i++) {
+    const ang = Math.PI / 4 + i * Math.PI / 2, dx = Math.sin(ang), dz = Math.cos(ang);
+    const curve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(dx * .12, 2.12, -.05 + dz * .12),
+      new THREE.Vector3(dx * .3, 2.08, -.05 + dz * .3),
+      new THREE.Vector3(dx * .36, 1.8, -.05 + dz * .36),
+      new THREE.Vector3(dx * .3, 1.42, -.05 + dz * .3),
+    ]);
+    add(new THREE.Mesh(new THREE.TubeGeometry(curve, 16, .055, 8), grey));
+  }
+  add(new THREE.Mesh(new THREE.CylinderGeometry(.08, .08, .3, 10), grey), 0, 2.2, -.05);
+  // big arcing gas pipe to a side tank
+  const arc = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0, 2.32, -.05), new THREE.Vector3(.1, 2.62, -.1), new THREE.Vector3(.5, 2.6, -.22),
+    new THREE.Vector3(.66, 2.2, -.28), new THREE.Vector3(.66, 1.3, -.28),
+  ]);
+  add(new THREE.Mesh(new THREE.TubeGeometry(arc, 32, .06, 10), orange));
+  add(new THREE.Mesh(new THREE.CylinderGeometry(.16, .16, .7, 16), greyDark), .66, .95, -.28);
+  add(new THREE.Mesh(new THREE.SphereGeometry(.16, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2), greyDark), .66, 1.3, -.28);
+  add(new THREE.Mesh(new THREE.CylinderGeometry(.13, .13, .5, 14), grey), -.6, .5, -.3);
+  add(new THREE.Mesh(new THREE.SphereGeometry(.13, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2), grey), -.6, .75, -.3);
+
+  // tap hole: dark arch, molten channel to the front, flickering flames
+  add(new THREE.Mesh(new RoundedBoxGeometry(.42, .3, .14, 2, .05), greyDark), 0, .36, .44);
+  const mouth = new THREE.Mesh(new THREE.PlaneGeometry(.3, .2), new THREE.MeshBasicMaterial({ color: 0xc23a08 }));
+  mouth.position.set(0, .34, .515); g.add(mouth);
+  const molten = new THREE.MeshStandardMaterial({ color: 0xff8a1f, emissive: 0xff6a00, emissiveIntensity: 1.6, roughness: .3 });
+  const channel = new THREE.Mesh(new THREE.BoxGeometry(.12, .03, .42), molten);
+  channel.position.set(0, .235, .6); g.add(channel);
   const fireMat = new THREE.MeshBasicMaterial({ color: 0xff8a1f, transparent: true, opacity: .95 });
   const coreMat = new THREE.MeshBasicMaterial({ color: 0xffe27a, transparent: true, opacity: .95 });
   const flames = [];
-  [[-.12, .34, .18], [.0, .4, .22], [.13, .33, .17]].forEach(([x, h, r]) => {
+  [[-.08, .22, .12], [0, .28, .15], [.08, .21, .11]].forEach(([x, h, r]) => {
     const f = new THREE.Mesh(new THREE.ConeGeometry(r * .55, h, 8), fireMat);
-    f.position.set(x, .3 + h / 2, .52); g.add(f); flames.push(f);
+    f.position.set(x, .25 + h / 2, .53); g.add(f); flames.push(f);
     const c = new THREE.Mesh(new THREE.ConeGeometry(r * .28, h * .6, 8), coreMat);
-    c.position.set(x, .3 + h * .3, .54); g.add(c); flames.push(c);
+    c.position.set(x, .25 + h * .3, .55); g.add(c); flames.push(c);
   });
-  const light = new THREE.PointLight(0xff8a2a, 7, 3.6, 1.5);
-  light.position.set(0, .55, 1); g.add(light);
-  g.userData = { flames, light };
+  // ore sign showing what this furnace is smelting
+  const sign = new THREE.Mesh(new RoundedBoxGeometry(.3, .16, .05, 2, .03), new THREE.MeshStandardMaterial({ color: signColor, emissive: signColor, emissiveIntensity: .45, metalness: .4, roughness: .3 }));
+  sign.position.set(0, .8, .44); g.add(sign);
+  // small warning lights on the base
+  for (const x of [-.48, .48]) {
+    const l = new THREE.Mesh(new THREE.BoxGeometry(.1, .05, .02), new THREE.MeshBasicMaterial({ color: 0xffd34d }));
+    l.position.set(x, .12, .575); g.add(l);
+  }
+  const light = new THREE.PointLight(0xff7a1a, 7, 3.2, 1.5);
+  light.position.set(0, .45, 1); g.add(light);
+  g.userData = { flames, light, molten, sign };
   return g;
 }
 

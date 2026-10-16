@@ -1,0 +1,97 @@
+{
+  "id": "lv01",
+  "number": 1,
+  "sidings": 5,
+  "furnaces": 2,
+  "shaftCol": 4,
+  "switches": [
+    {
+      "row": 2,
+      "start": "L"
+    },
+    {
+      "row": 5,
+      "start": "R"
+    },
+    {
+      "row": 8,
+      "start": "L"
+    }
+  ],
+  "crateDefault": 5,
+  "grid": [
+    "IRRJ#JRRI",
+    "CCJR#RJCC",
+    "JGJ=#=JGJ",
+    "GJGG#GGJG",
+    "cJRC#CRJc",
+    "ICG=#=GCI",
+    "CCJR#RJCC",
+    "IJXC#CXJI",
+    "ICC=#=CCI",
+    "GJJC#CJJG",
+    "JDCJ#JCDJ"
+  ],
+  "queue": [
+    [
+      "I",
+      4
+    ],
+    [
+      "G",
+      4
+    ],
+    [
+      "C",
+      6
+    ],
+    [
+      "J",
+      4
+    ],
+    [
+      "I",
+      4
+    ],
+    [
+      "J",
+      6
+    ],
+    [
+      "C",
+      4
+    ],
+    [
+      "J",
+      4
+    ],
+    [
+      "G",
+      4
+    ],
+    [
+      "C",
+      6
+    ],
+    [
+      "J",
+      4
+    ],
+    [
+      "C",
+      4
+    ],
+    [
+      "G",
+      4
+    ],
+    [
+      "C",
+      4
+    ],
+    [
+      "J",
+      6
+    ]
+  ]
+}

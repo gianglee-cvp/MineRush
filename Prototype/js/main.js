@@ -4,6 +4,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { LEVEL, ORE_INFO, parseCell, exposedSet } from './level.js';
 import * as M from './models.js';
+import { buildCave } from './cave.js';
 import { MODELS } from '../assets/manifest.js';
 
 const W = 1080, H = 1920;
@@ -41,8 +42,8 @@ scene.fog = new THREE.Fog(0xb9dcff, 70, 170);
 // soft studio reflections so gold, iron and jade read as shiny instead of black
 scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), .04).texture;
 
-const TARGET = new THREE.Vector3(0, -1.75, 0);
-const DIST = 27, TILT = THREE.MathUtils.degToRad(15);
+const TARGET = new THREE.Vector3(0, -1.05, 0);
+const DIST = 29, TILT = THREE.MathUtils.degToRad(10);
 const camera = new THREE.PerspectiveCamera(32, W / H, .1, 200);
 camera.position.set(0, TARGET.y + DIST * Math.sin(TILT), DIST * Math.cos(TILT));
 camera.lookAt(TARGET);
@@ -77,14 +78,11 @@ function buildBoard() {
   const exposed = exposedSet(LEVEL.grid);
   const isTunnel = (r, c) => (r === -1 && LEVEL.grid[0][c] === '#') || (r >= 0 && r < ROWS && c >= 0 && c < COLS && LEVEL.grid[r][c] === '#');
   const glowFrames = [];
-  // dark rock backdrop so no sky shows through the gaps between cells
-  const backdrop = new THREE.Mesh(new THREE.PlaneGeometry(COLS + 2, ROWS + 3), M.MAT.cave);
-  backdrop.position.set(0, -(ROWS + 3) / 2 + .1, -.32); board.add(backdrop);
 
   for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
     const cell = parseCell(LEVEL.grid[r][c]);
     let obj;
-    if (cell.type === 'dirt') obj = M.makeDirtBlock((r + c) % 2);
+    if (cell.type === 'dirt') continue; // outside the mountain: the cave wall shows through
     else if (cell.type === 'tunnel') obj = M.makeTunnelCell({ up: isTunnel(r - 1, c), down: isTunnel(r + 1, c), left: isTunnel(r, c - 1), right: isTunnel(r, c + 1) });
     else if (cell.type === 'rock') obj = model('rock', M.makeRockCell);
     else if (cell.hidden) obj = model('hidden', M.makeHiddenCell);
@@ -103,47 +101,17 @@ function buildBoard() {
   }
 
   // shaft collar between the surface and row 0
-  const top = -.4;
-  for (let c = -1; c <= COLS; c++) {
-    if (c >= 0 && c < COLS && LEVEL.grid[0][c] === '#') {
-      const t = M.makeTunnelCell({ up: true, down: true });
-      t.scale.y = .4; t.position.set(cx(c), top / 2, 0); board.add(t);
-      continue;
-    }
-    const d = M.makeDirtBlock(c & 1); d.scale.y = .42; d.position.set(cx(c), top / 2, 0); board.add(d);
+  for (let c = 0; c < COLS; c++) if (LEVEL.grid[0][c] === '#') {
+    const t = M.makeTunnelCell({ up: true, down: true });
+    t.scale.y = .4; t.position.set(cx(c), -.2, 0); board.add(t);
   }
-  // pit walls left/right and the floor below the board
-  for (let r = 0; r < ROWS + 2; r++) for (const c of [-1, COLS]) {
-    const d = M.makeDirtBlock((r + c) & 1); d.position.set(cx(c), cy(r), 0); board.add(d);
-  }
-  for (let r = ROWS; r < ROWS + 2; r++) for (let c = 0; c < COLS; c++) {
-    const d = M.makeDirtBlock((r + c) & 1); d.position.set(cx(c), cy(r), 0); board.add(d);
-  }
-  // brown outer cliff with grass lip
-  for (let r = -1; r < ROWS + 3; r++) for (const c of [-3, -2, COLS + 1, COLS + 2]) {
-    const s = new THREE.Mesh(new THREE.BoxGeometry(1, 1, .9, 2, 2, 1), (r + c) & 1 ? M.MAT.soil : M.MAT.soilDark);
-    const p = s.geometry.attributes.position;
-    for (let i = 0; i < p.count; i++) p.setXYZ(i, p.getX(i) + (M.rand() - .5) * .14, p.getY(i) + (M.rand() - .5) * .14, p.getZ(i) + (M.rand() - .5) * .1);
-    s.geometry.computeVertexNormals();
-    s.position.set(cx(c), r === -1 ? -.3 : cy(r) , .05); s.receiveShadow = true;
-    board.add(s);
-  }
-  const lip = new THREE.Mesh(new THREE.BoxGeometry(14, .14, .55), M.MAT.grass);
-  lip.position.set(0, .02, .2); lip.receiveShadow = true; board.add(lip);
-  for (let i = 0; i < 46; i++) {
-    const t = new THREE.Mesh(new THREE.ConeGeometry(.07 + M.rand() * .06, .2 + M.rand() * .18, 4), M.rand() > .5 ? M.MAT.grass : M.MAT.grassDark);
-    const x = -7 + M.rand() * 14;
-    if (Math.abs(x) < .6) continue;
-    t.position.set(x, .12, .4 + M.rand() * .1); board.add(t);
-    // hanging grass over the cliff edge
-    if (Math.abs(x) > 3.9) { const h = t.clone(); h.rotation.z = Math.PI; h.position.y = -.12; board.add(h); }
-  }
-
-  // lanterns on the pit walls
-  [[-3.62, -1.0], [3.62, -1.0], [-3.62, -4.3], [3.62, -4.3], [.36, -.15]].forEach(([x, y]) => {
-    const l = M.makeLantern(); l.position.set(x, y, .5); board.add(l); lanterns.push(l);
-    const halo = M.makeGlowSprite(0xffa24a, 1.3, .55); halo.position.set(x, y, .62); board.add(halo); halos.push(halo);
-    const pl = new THREE.PointLight(0xffb85a, 2.2, 2.6, 1.8); pl.position.set(x, y, .9); board.add(pl); lanternLights.push(pl);
+  // rocky cave, timber frame, cliffs, plants and depth vignette
+  const cave = buildCave({ halfW: COLS / 2, top: -.4, bottom: cy(ROWS - 1) - .5 });
+  board.add(cave.group);
+  cave.lanterns.forEach((p) => {
+    const l = M.makeLantern(); l.position.copy(p); board.add(l); lanterns.push(l);
+    const halo = M.makeGlowSprite(0xffa24a, 1.25, .55); halo.position.set(p.x, p.y, p.z + .15); board.add(halo); halos.push(halo);
+    const pl = new THREE.PointLight(0xffb85a, 2.4, 2.8, 1.8); pl.position.set(p.x * .9, p.y, .95); board.add(pl); lanternLights.push(pl);
   });
 
   scene.add(board);
@@ -190,24 +158,20 @@ function buildSurface() {
   anchors.siding = new THREE.Vector3(-.08, 1.25, -.55);
 
   // two active furnaces
-  [2.62, 3.66].forEach((x, i) => {
-    const f = model('furnace', M.makeFurnace);
-    f.position.set(x, 0, -.45); f.scale.setScalar(.9); scene.add(f); furnaces.push(f);
-    const fh = M.makeGlowSprite(0xff7a1a, 1.5, .7); fh.position.set(x, .5, .2); scene.add(fh); halos.push(fh);
-    chimneys.push(new THREE.Vector3(x + .26 * .9, 1.75, -.58));
+  const oreHex = { G: 0xffc629, C: 0xe8642a, J: 0x1fcf63, I: 0xd7dee6 };
+  [2.55, 3.74].forEach((x, i) => {
+    const f = model('furnace', () => M.makeFurnace(oreHex[LEVEL.queue[i][0]]));
+    f.position.set(x, 0, -.45); f.scale.setScalar(.88); scene.add(f); furnaces.push(f);
+    const fh = M.makeGlowSprite(0xff7a1a, 1.2, .7); fh.position.set(x, .35, .25); scene.add(fh); halos.push(fh);
+    chimneys.push(new THREE.Vector3(x + .58 * .88, 1.25, -.7));
     anchors['furnace' + i] = new THREE.Vector3(x, .02, .1);
   });
-  const shed = new THREE.Mesh(new THREE.BoxGeometry(2.3, 1.1, 1), M.MAT.brickDark);
-  shed.position.set(3.15, .55, -1.6); shed.castShadow = true; scene.add(shed);
-  const roof = new THREE.Mesh(new THREE.ConeGeometry(1.75, .55, 4).rotateY(Math.PI / 4).scale(1, 1, .55), M.MAT.wood);
-  roof.position.set(3.15, 1.38, -1.6); scene.add(roof);
-
   // trees and mountains
   // far forest band
-  for (let i = 0; i < 90; i++) {
-    const t = M.makePine(1.6 + M.rand() * 1.6); t.position.set(-30 + M.rand() * 60, 0, -12 - M.rand() * 30); scene.add(t);
+  for (let i = 0; i < 70; i++) {
+    const t = M.makePine(1.6 + M.rand() * 1.6); t.position.set(-30 + M.rand() * 60, 0, -18 - M.rand() * 30); scene.add(t);
   }
-  for (let i = 0; i < 40; i++) {
+  for (let i = 0; i < 18; i++) {
     const side = i % 2 ? 1 : -1;
     const x = side * (2.2 + M.rand() * 9), z = -1.6 - M.rand() * 9;
     if (x > 1.6 && x < 5 && z > -3) continue;
@@ -277,7 +241,8 @@ function tick() {
   animGems.forEach((g, i) => { g.userData.spin.rotation.y += dt * .35 * (i % 2 ? 1 : -1); });
   furnaces.forEach((f, i) => {
     f.userData.flames?.forEach((fl, j) => { fl.scale.y = .85 + .3 * Math.abs(Math.sin(t * 9 + j * 1.7 + i)); });
-    if (f.userData.light) f.userData.light.intensity = 4.2 + 1.4 * Math.sin(t * 13 + i * 2);
+    if (f.userData.light) f.userData.light.intensity = 5.5 + 1.8 * Math.sin(t * 13 + i * 2);
+    if (f.userData.molten) f.userData.molten.emissiveIntensity = 1.4 + .5 * Math.sin(t * 5 + i);
   });
   halos.forEach((h, i) => { h.material.opacity = .5 + .12 * Math.sin(t * 8 + i * 2.3); });
   lanternLights.forEach((l, i) => { l.intensity = 2 + .35 * Math.sin(t * 7 + i * 3) * Math.sin(t * 3.1 + i); });
